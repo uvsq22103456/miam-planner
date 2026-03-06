@@ -78,10 +78,9 @@
                     </details>
 
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-[40%]">
-                        <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-[20%]">
-                        <input type="number" id="ing-price" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Prix €" class="input-style bg-white mb-0 w-[20%]">
-                        <select id="ing-store" class="input-style bg-white mb-0 w-[20%] px-1"></select>
+                        <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-1/2">
+                        <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-1/4">
+                        <select id="ing-store" class="input-style bg-white mb-0 w-1/4 px-1"></select>
                     </div>
                     <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase tracking-wider mb-3">Ajouter (ou touche Entrée)</button>
                     <div id="temp-ings" class="space-y-1"></div>
@@ -172,7 +171,7 @@
         const db = firebase.firestore();
         const userId = "cuisine_cocon_user";
 
-        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [] };
+        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [], prices: {} };
         let tempIngredients = [];
         let tmpImg = '';
         let weekOffset = 0; 
@@ -257,19 +256,16 @@
         window.addIngToList = () => {
             const name = document.getElementById('ing-name').value.trim();
             const qty = document.getElementById('ing-qty').value.trim();
-            const price = parseFloat(document.getElementById('ing-price').value) || 0;
             const store = document.getElementById('ing-store').value;
             if(name) {
-                tempIngredients.push({ name, qty, price, store });
+                tempIngredients.push({ name, qty, store });
                 document.getElementById('ing-name').value=''; 
                 document.getElementById('ing-qty').value=''; 
-                document.getElementById('ing-price').value='';
                 document.getElementById('ing-name').focus();
                 renderTempIngs();
             }
         };
 
-        // LE COPIER COLLER RAPIDE
         window.importBulkIngredients = () => {
             const text = document.getElementById('bulk-ingredients').value;
             if(!text.trim()) return;
@@ -279,7 +275,7 @@
             lines.forEach(line => {
                 const clean = line.trim();
                 if(clean) {
-                    tempIngredients.push({ name: clean, qty: '', price: 0, store: defaultStore });
+                    tempIngredients.push({ name: clean, qty: '', store: defaultStore });
                 }
             });
             document.getElementById('bulk-ingredients').value = '';
@@ -335,7 +331,7 @@
             tempIngredients = []; tmpImg = '';
             document.getElementById('r-name').value = ''; document.getElementById('r-link').value = '';
             document.getElementById('r-prep-time').value = ''; document.getElementById('r-airfryer').value = ''; document.getElementById('r-steps').value = '';
-            document.getElementById('ing-name').value = ''; document.getElementById('ing-qty').value = ''; document.getElementById('ing-price').value = '';
+            document.getElementById('ing-name').value = ''; document.getElementById('ing-qty').value = ''; 
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('txt-photo').innerText = "Ajouter / Modifier la photo";
             document.getElementById('temp-ings').innerHTML = '';
@@ -385,6 +381,13 @@
         window.toggleFav = (id) => { const r = state.recipes.find(x => x.id === id); if(r) { r.fav = !r.fav; save(); } };
         window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x.id === id); if(r) { r[field] = val; save(); } };
 
+        // NOUVEAU: Mettre à jour le prix depuis la liste de courses
+        window.updatePrice = (name, val) => {
+            if(!state.prices) state.prices = {};
+            state.prices[name.toLowerCase()] = parseFloat(val) || 0;
+            save(); // Sauvegarde et déclenche le re-rendu (qui va recalculer le budget)
+        };
+
         window.filterRecipes = (f) => {
             currentFilter = f;
             document.querySelectorAll('.filter-chip').forEach(btn => {
@@ -418,19 +421,52 @@
             if(!state.planning[weekKey]) state.planning[weekKey] = {};
             if(!state.hiddenShop) state.hiddenShop = [];
             if(!state.cookedSlots) state.cookedSlots = [];
+            if(!state.prices) state.prices = {};
 
-            // 1. PLANNING
+            // 1. GESTION DES COURSES (Générée avant le planning pour pouvoir calculer le budget complet)
+            let shopping = {};
+            
+            Object.values(state.planning[weekKey]).forEach(dayPlan => {
+                let pArray = Array.isArray(dayPlan) ? dayPlan : [dayPlan];
+                pArray.forEach(rid => {
+                    const r = state.recipes.find(x => x.id === rid);
+                    if(r && r.ingredients) r.ingredients.forEach(i => {
+                        const low = i.name.toLowerCase();
+                        if(!state.stock.includes(low) && !state.hiddenShop.includes(low)) {
+                            if(!shopping[i.store]) shopping[i.store] = [];
+                            const existing = shopping[i.store].find(x => x.name.toLowerCase() === low);
+                            if(!existing) {
+                                shopping[i.store].push({ ...i, idRef: i.name, isManual: false });
+                            }
+                        }
+                    });
+                });
+            });
+
+            if(state.customShop) {
+                state.customShop.forEach(item => {
+                    if(!shopping[item.store]) shopping[item.store] = [];
+                    shopping[item.store].push({ name: item.name, qty: '', idRef: item.id, isManual: true });
+                });
+            }
+
+            // CALCUL DU BUDGET TOTAL (Basé sur la liste de courses générée + ajouts manuels)
+            Object.values(shopping).forEach(storeItems => {
+                storeItems.forEach(item => {
+                    const itemPrice = state.prices[item.name.toLowerCase()] || 0;
+                    budget += itemPrice;
+                });
+            });
+
+            // MISE A JOUR AFFICHAGE BUDGET
+            document.getElementById('total-budget').innerText = budget.toFixed(2);
+
+
+            // 2. RENDU DU PLANNING
             document.getElementById('planner-container').innerHTML = days.map(d => {
                 let dayPlan = state.planning[weekKey][d];
                 if (typeof dayPlan === 'number') { dayPlan = [dayPlan]; state.planning[weekKey][d] = dayPlan; }
                 if (!Array.isArray(dayPlan) || dayPlan.length === 0) { dayPlan = [0]; state.planning[weekKey][d] = dayPlan; }
-
-                dayPlan.forEach(rid => {
-                    const r = state.recipes.find(x => x.id === rid);
-                    if(r && r.ingredients) r.ingredients.forEach(i => { 
-                        if(!state.stock.includes(i.name.toLowerCase()) && !state.hiddenShop.includes(i.name.toLowerCase())) { budget += i.price; }
-                    });
-                });
 
                 const selectsHtml = dayPlan.map((plannedId, index) => {
                     const r = state.recipes.find(x => x.id === plannedId);
@@ -460,9 +496,9 @@
                     <div class="flex flex-col">${selectsHtml}</div>
                 </div>`;
             }).join('');
-            document.getElementById('total-budget').innerText = budget.toFixed(2);
 
-            // 2. RECETTES
+
+            // 3. RECETTES
             const filteredRecipes = state.recipes.filter(r => {
                 if (currentFilter === 'fav') return r.fav;
                 if (currentFilter !== 'all') return r.cat === currentFilter;
@@ -524,36 +560,8 @@
                 </div>`
             }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
-            // 3. COURSES (Groupé par magasin, incluant les ajouts manuels)
-            let shopping = {};
-            
-            // Ingrédients du menu
-            Object.values(state.planning[weekKey]).forEach(dayPlan => {
-                let pArray = Array.isArray(dayPlan) ? dayPlan : [dayPlan];
-                pArray.forEach(rid => {
-                    const r = state.recipes.find(x => x.id === rid);
-                    if(r && r.ingredients) r.ingredients.forEach(i => {
-                        const low = i.name.toLowerCase();
-                        if(!state.stock.includes(low) && !state.hiddenShop.includes(low)) {
-                            if(!shopping[i.store]) shopping[i.store] = [];
-                            // On cherche si l'ingrédient existe déjà pour additionner les quantités/prix (simplifié)
-                            const existing = shopping[i.store].find(x => x.name.toLowerCase() === low);
-                            if(!existing) {
-                                shopping[i.store].push({ ...i, idRef: i.name, isManual: false });
-                            }
-                        }
-                    });
-                });
-            });
 
-            // Articles manuels
-            if(state.customShop) {
-                state.customShop.forEach(item => {
-                    if(!shopping[item.store]) shopping[item.store] = [];
-                    shopping[item.store].push({ name: item.name, price: 0, qty: '', idRef: item.id, isManual: true });
-                });
-            }
-
+            // 4. RENDU DE LA LISTE DE COURSES
             document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
 
             document.getElementById('shopping-by-store').innerHTML = Object.keys(shopping).map(store => `
@@ -562,6 +570,9 @@
                     <div class="space-y-3">
                         ${shopping[store].map(i => {
                             const isPurchased = state.purchased?.includes(i.idRef.toString());
+                            const itemPrice = state.prices[i.name.toLowerCase()] || ''; // On récupère le prix mémorisé
+                            const safeName = i.name.replace(/'/g, "\\'"); // Sécurité pour les apostrophes
+                            
                             return `
                             <div class="flex justify-between items-center group">
                                 <div onclick="togglePurchased('${i.idRef}')" class="flex-1 cursor-pointer flex items-center gap-2">
@@ -571,11 +582,13 @@
                                         ${i.isManual ? `<span class="text-[8px] bg-yellow-50 text-yellow-600 px-1 rounded ml-1">+ Ajout</span>` : ''}
                                     </span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    ${!i.isManual ? `<span class="text-[10px] font-bold text-gray-300">${i.price.toFixed(2)}€</span>` : ''}
+                                <div class="flex items-center gap-2">
+                                    <input type="number" step="0.01" value="${itemPrice}" onchange="updatePrice('${safeName}', this.value)" placeholder="Prix" class="w-12 bg-transparent text-right text-[10px] font-bold text-gray-500 outline-none border-b border-gray-200 focus:border-[#C5A065]">
+                                    <span class="text-[10px] font-bold text-gray-400">€</span>
+                                    
                                     ${i.isManual 
-                                        ? `<button onclick="removeManualItem(${i.idRef})" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>` 
-                                        : `<button onclick="hideFromShop('${i.name}')" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>`
+                                        ? `<button onclick="removeManualItem(${i.idRef})" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>` 
+                                        : `<button onclick="hideFromShop('${safeName}')" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>`
                                     }
                                 </div>
                             </div>`
@@ -587,7 +600,7 @@
             if (state.hiddenShop && state.hiddenShop.length > 0) { restoreBtn.classList.remove('hidden'); } 
             else { restoreBtn.classList.add('hidden'); }
 
-            // 4. Magasins & Stock
+            // 5. Magasins & Stock
             document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
             document.getElementById('ing-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
             document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
