@@ -67,27 +67,37 @@
                 <input type="text" id="r-link" placeholder="Lien Vidéo TikTok/Insta..." class="input-style">
                 
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <p class="text-[10px] font-black uppercase text-gray-400 mb-2">Ingrédients</p>
-                    <div class="flex gap-2 mb-2">
-                        <input type="text" id="ing-name" placeholder="Nom" class="input-style bg-white mb-0 w-1/2">
-                        <input type="number" id="ing-price" placeholder="Prix €" class="input-style bg-white mb-0 w-1/4">
-                        <select id="ing-store" class="input-style bg-white mb-0 w-1/4"></select>
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-[10px] font-black uppercase text-gray-400">Ingrédients</p>
                     </div>
-                    <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase tracking-wider mb-3">Ajouter l'ingrédient</button>
+
+                    <details class="bg-white border border-gray-200 rounded-lg p-2 mb-3">
+                        <summary class="text-[10px] font-bold text-[#C5A065] cursor-pointer outline-none"><i class="fa-solid fa-paste mr-1"></i> Copier/Coller rapide</summary>
+                        <textarea id="bulk-ingredients" placeholder="200g de farine&#10;3 oeufs&#10;1 pincée de sel" class="input-style mt-2 h-20 text-xs bg-gray-50 mb-2"></textarea>
+                        <button onclick="importBulkIngredients()" class="w-full py-2 bg-gray-100 rounded-md text-[9px] font-bold text-gray-600 uppercase tracking-widest border border-gray-200">Importer la liste</button>
+                    </details>
+
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-[40%]">
+                        <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-[20%]">
+                        <input type="number" id="ing-price" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Prix €" class="input-style bg-white mb-0 w-[20%]">
+                        <select id="ing-store" class="input-style bg-white mb-0 w-[20%] px-1"></select>
+                    </div>
+                    <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase tracking-wider mb-3">Ajouter (ou touche Entrée)</button>
                     <div id="temp-ings" class="space-y-1"></div>
                 </div>
 
                 <div class="bg-[#FFFDF5] p-4 rounded-xl border border-yellow-50">
                     <p class="text-[10px] font-black uppercase text-[#C5A065] mb-2">Temps & Cuisson</p>
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="r-prep-time" placeholder="Prépa (ex: 15 min)" class="input-style bg-white mb-0 w-1/2">
-                        <input type="text" id="r-airfryer" placeholder="Airfryer (ex: 20m 180°)" class="input-style bg-white mb-0 w-1/2">
+                        <input type="text" id="r-prep-time" placeholder="Prépa (15 min)" class="input-style bg-white mb-0 w-1/2">
+                        <input type="text" id="r-airfryer" placeholder="Airfryer (20m 180°)" class="input-style bg-white mb-0 w-1/2">
                     </div>
-                    <textarea id="r-steps" placeholder="Étapes de préparation (retour à la ligne pour chaque étape)..." class="input-style bg-white h-24 mb-0"></textarea>
+                    <textarea id="r-steps" placeholder="Étapes de préparation..." class="input-style bg-white h-24 mb-0"></textarea>
                 </div>
 
                 <label class="block w-full py-4 text-center border-2 border-dashed border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#8FA895] cursor-pointer bg-gray-50 relative overflow-hidden">
-                    <span id="txt-photo"><i class="fa-solid fa-camera mr-2"></i>Ajouter / Modifier la photo</span>
+                    <span id="txt-photo"><i class="fa-solid fa-camera mr-2"></i>Photo de la recette</span>
                     <input type="file" class="hidden" accept="image/*" onchange="compressImg(this)">
                     <div id="photo-preview" class="absolute inset-0 bg-cover bg-center hidden opacity-40"></div>
                 </label>
@@ -108,10 +118,20 @@
 
     <div id="shop" class="page">
         <h2 class="serif italic text-lg mb-4">Liste de courses (<span id="shop-week-label">Actuelle</span>)</h2>
+        
+        <div class="card bg-[#FFFDF5] border border-yellow-50 mb-6 p-4">
+            <h3 class="font-bold text-[10px] uppercase text-[#C5A065] mb-2">🛒 Ajouter un article manuel</h3>
+            <div class="flex gap-2">
+                <input type="text" id="manual-item" placeholder="Ex: Sopalin..." class="input-style mb-0 bg-white w-1/2">
+                <select id="manual-store" class="input-style bg-white mb-0 w-1/4 px-1"></select>
+                <button onclick="addManualItem()" class="bg-[#3A4D3F] text-white px-2 rounded-xl text-[10px] font-bold uppercase w-1/4">Ajouter</button>
+            </div>
+        </div>
+
         <div id="shopping-by-store" class="space-y-6"></div>
         
         <div id="restore-hidden-btn" class="hidden mt-6 text-center">
-            <button onclick="restoreHiddenShop()" class="text-[10px] font-bold text-gray-400 uppercase border border-gray-200 px-4 py-2 rounded-full">Restaurer les articles masqués ↺</button>
+            <button onclick="restoreHiddenShop()" class="text-[10px] font-bold text-gray-400 uppercase border border-gray-200 px-4 py-2 rounded-full">Restaurer articles masqués ↺</button>
         </div>
     </div>
 
@@ -126,8 +146,8 @@
         </div>
         <div class="card mt-4">
             <h3 class="font-bold text-sm uppercase mb-3">📦 Mon Placard (Stock)</h3>
-            <p class="text-[10px] text-gray-400 mb-2 italic">Si c'est ici, ça ne s'ajoute pas aux courses.</p>
-            <input type="text" id="stock-input" onchange="addToStock()" placeholder="J'ai déjà du..." class="input-style">
+            <p class="text-[10px] text-gray-400 mb-2 italic">Le nom doit être EXACTEMENT le même que "Nom" dans tes recettes.</p>
+            <input type="text" id="stock-input" onchange="addToStock()" placeholder="Farine, Oeufs..." class="input-style">
             <div id="stock-list" class="flex flex-wrap gap-2 mt-2"></div>
         </div>
     </div>
@@ -152,8 +172,7 @@
         const db = firebase.firestore();
         const userId = "cuisine_cocon_user";
 
-        // Ajout de cookedSlots pour cocher les plats réalisés
-        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [] };
+        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [] };
         let tempIngredients = [];
         let tmpImg = '';
         let weekOffset = 0; 
@@ -204,26 +223,14 @@
             state.planning[week][day].push(0);
             save();
         };
+        window.removePlanSlot = (week, day, index) => { state.planning[week][day].splice(index, 1); save(); };
+        window.updatePlan = (week, day, index, val) => { state.planning[week][day][index] = val; save(); };
 
-        window.removePlanSlot = (week, day, index) => {
-            state.planning[week][day].splice(index, 1);
-            save();
-        };
-
-        window.updatePlan = (week, day, index, val) => {
-            state.planning[week][day][index] = val;
-            save();
-        };
-
-        // NOUVEAUTÉ : Cocher si on a cuisiné le plat !
         window.toggleCooked = (week, day, index) => {
             if(!state.cookedSlots) state.cookedSlots = [];
             const slotId = `${week}-${day}-${index}`;
-            if(state.cookedSlots.includes(slotId)) {
-                state.cookedSlots = state.cookedSlots.filter(id => id !== slotId);
-            } else {
-                state.cookedSlots.push(slotId);
-            }
+            if(state.cookedSlots.includes(slotId)) state.cookedSlots = state.cookedSlots.filter(id => id !== slotId);
+            else state.cookedSlots.push(slotId);
             save();
         };
 
@@ -232,22 +239,62 @@
             if(s) { state.stores.push(s); document.getElementById('new-store').value=''; save(); }
         };
 
+        window.addManualItem = () => {
+            const name = document.getElementById('manual-item').value.trim();
+            const store = document.getElementById('manual-store').value;
+            if(name) {
+                if(!state.customShop) state.customShop = [];
+                state.customShop.push({ id: Date.now(), name, store });
+                document.getElementById('manual-item').value = '';
+                save();
+            }
+        };
+        window.removeManualItem = (id) => {
+            state.customShop = state.customShop.filter(x => x.id !== id);
+            save();
+        };
+
         window.addIngToList = () => {
-            const name = document.getElementById('ing-name').value;
+            const name = document.getElementById('ing-name').value.trim();
+            const qty = document.getElementById('ing-qty').value.trim();
             const price = parseFloat(document.getElementById('ing-price').value) || 0;
             const store = document.getElementById('ing-store').value;
             if(name) {
-                tempIngredients.push({ name, price, store });
-                document.getElementById('ing-name').value=''; document.getElementById('ing-price').value='';
+                tempIngredients.push({ name, qty, price, store });
+                document.getElementById('ing-name').value=''; 
+                document.getElementById('ing-qty').value=''; 
+                document.getElementById('ing-price').value='';
+                document.getElementById('ing-name').focus();
                 renderTempIngs();
             }
         };
 
+        // LE COPIER COLLER RAPIDE
+        window.importBulkIngredients = () => {
+            const text = document.getElementById('bulk-ingredients').value;
+            if(!text.trim()) return;
+            const lines = text.split('\n');
+            const defaultStore = state.stores[0] || 'Autre';
+            
+            lines.forEach(line => {
+                const clean = line.trim();
+                if(clean) {
+                    tempIngredients.push({ name: clean, qty: '', price: 0, store: defaultStore });
+                }
+            });
+            document.getElementById('bulk-ingredients').value = '';
+            document.querySelector('#bulk-ingredients').parentElement.removeAttribute('open');
+            renderTempIngs();
+        };
+
         function renderTempIngs() {
             document.getElementById('temp-ings').innerHTML = tempIngredients.map((i, idx) => `
-                <div class="flex justify-between bg-white px-3 py-1.5 rounded-lg border border-gray-100 text-[11px]">
-                    <span>${i.name} (${i.store})</span>
-                    <button onclick="tempIngredients.splice(${idx},1); renderTempIngs();" class="text-red-300">×</button>
+                <div class="flex justify-between items-center bg-white px-3 py-1.5 rounded-lg border border-gray-100 text-[11px]">
+                    <span class="font-bold">${i.name} ${i.qty ? `<span class="text-gray-400 font-normal">(${i.qty})</span>` : ''}</span>
+                    <div class="flex items-center gap-2 text-gray-400">
+                        <span>${i.store}</span>
+                        <button onclick="tempIngredients.splice(${idx},1); renderTempIngs();" class="text-red-300"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
                 </div>`).join('');
         }
 
@@ -288,6 +335,7 @@
             tempIngredients = []; tmpImg = '';
             document.getElementById('r-name').value = ''; document.getElementById('r-link').value = '';
             document.getElementById('r-prep-time').value = ''; document.getElementById('r-airfryer').value = ''; document.getElementById('r-steps').value = '';
+            document.getElementById('ing-name').value = ''; document.getElementById('ing-qty').value = ''; document.getElementById('ing-price').value = '';
             document.getElementById('photo-preview').classList.add('hidden');
             document.getElementById('txt-photo').innerText = "Ajouter / Modifier la photo";
             document.getElementById('temp-ings').innerHTML = '';
@@ -323,13 +371,10 @@
                         fav: false, rating: 0, notes: "" 
                     });
                 }
-                
                 resetRecipeForm();
                 document.getElementById('recipe-form-details').open = false;
                 save();
-            } else {
-                alert("Il manque au moins le nom de la recette !");
-            }
+            } else { alert("Il manque au moins le nom de la recette !"); }
         };
 
         window.addToStock = () => {
@@ -337,25 +382,14 @@
             if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; save(); }
         };
 
-        window.toggleFav = (id) => {
-            const r = state.recipes.find(x => x.id === id);
-            if(r) { r.fav = !r.fav; save(); }
-        };
-
-        window.updateRec = (id, field, val) => {
-            const r = state.recipes.find(x => x.id === id);
-            if(r) { r[field] = val; save(); }
-        };
+        window.toggleFav = (id) => { const r = state.recipes.find(x => x.id === id); if(r) { r.fav = !r.fav; save(); } };
+        window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x.id === id); if(r) { r[field] = val; save(); } };
 
         window.filterRecipes = (f) => {
             currentFilter = f;
             document.querySelectorAll('.filter-chip').forEach(btn => {
-                btn.classList.remove('bg-[#8FA895]', 'text-white');
-                btn.classList.add('bg-white', 'text-gray-400');
-                if(btn.id === 'f-' + f) {
-                    btn.classList.remove('bg-white', 'text-gray-400');
-                    btn.classList.add('bg-[#8FA895]', 'text-white');
-                }
+                btn.classList.remove('bg-[#8FA895]', 'text-white'); btn.classList.add('bg-white', 'text-gray-400');
+                if(btn.id === 'f-' + f) { btn.classList.remove('bg-white', 'text-gray-400'); btn.classList.add('bg-[#8FA895]', 'text-white'); }
             });
             renderAll();
         };
@@ -385,7 +419,7 @@
             if(!state.hiddenShop) state.hiddenShop = [];
             if(!state.cookedSlots) state.cookedSlots = [];
 
-            // 1. Planning
+            // 1. PLANNING
             document.getElementById('planner-container').innerHTML = days.map(d => {
                 let dayPlan = state.planning[weekKey][d];
                 if (typeof dayPlan === 'number') { dayPlan = [dayPlan]; state.planning[weekKey][d] = dayPlan; }
@@ -394,9 +428,7 @@
                 dayPlan.forEach(rid => {
                     const r = state.recipes.find(x => x.id === rid);
                     if(r && r.ingredients) r.ingredients.forEach(i => { 
-                        if(!state.stock.includes(i.name.toLowerCase()) && !state.hiddenShop.includes(i.name.toLowerCase())) {
-                            budget += i.price; 
-                        }
+                        if(!state.stock.includes(i.name.toLowerCase()) && !state.hiddenShop.includes(i.name.toLowerCase())) { budget += i.price; }
                     });
                 });
 
@@ -410,9 +442,7 @@
                         <button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-2 text-[14px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors">
                             <i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i>
                         </button>
-                        
                         <span class="text-[11px] font-bold ${isCooked ? 'text-[#8FA895] line-through opacity-70' : 'text-gray-700'} truncate flex-1">${r ? r.name : 'Choisir un plat...'}</span>
-                        
                         <select onchange="updatePlan('${weekKey}', '${d}', ${index}, parseInt(this.value))" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none ml-2">
                             <option value="0">---</option>
                             ${state.recipes.map(rec => `<option value="${rec.id}" ${plannedId === rec.id ? 'selected' : ''}>${rec.name}</option>`).join('')}
@@ -427,14 +457,12 @@
                         <span class="text-[11px] font-bold text-[#8FA895] uppercase tracking-widest">${d}</span>
                         <button onclick="addPlanSlot('${weekKey}', '${d}')" class="text-[9px] bg-[#8FA895] text-white px-2 py-1 rounded shadow-sm font-bold uppercase tracking-wider">+ Plat</button>
                     </div>
-                    <div class="flex flex-col">
-                        ${selectsHtml}
-                    </div>
+                    <div class="flex flex-col">${selectsHtml}</div>
                 </div>`;
             }).join('');
             document.getElementById('total-budget').innerText = budget.toFixed(2);
 
-            // 2. Recettes
+            // 2. RECETTES
             const filteredRecipes = state.recipes.filter(r => {
                 if (currentFilter === 'fav') return r.fav;
                 if (currentFilter !== 'all') return r.cat === currentFilter;
@@ -463,18 +491,22 @@
                         </div>
                         
                         <div class="flex gap-2 mb-3">${prepBadge}${airfryerBadge}</div>
-
                         ${r.link ? `<a href="${r.link}" target="_blank" class="text-[9px] text-[#C5A065] underline uppercase font-bold tracking-widest block mb-2">Lien Vidéo ↗</a>` : ''}
                         
-                        <div class="flex flex-wrap gap-1 mb-3">${(r.ingredients||[]).map(i => `<span class="bg-gray-50 border border-gray-100 px-2 py-0.5 rounded text-[9px] text-gray-400 font-bold">${i.name}</span>`).join('')}</div>
+                        <details class="mb-2 group">
+                            <summary class="list-none text-[10px] font-bold text-gray-500 cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                Ingrédients (${r.ingredients ? r.ingredients.length : 0}) <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i>
+                            </summary>
+                            <div class="pt-2 pb-2 flex flex-wrap gap-1">
+                                ${(r.ingredients||[]).map(i => `<span class="bg-white border border-gray-200 px-2 py-1 rounded text-[9px] text-gray-500 font-bold">${i.name} ${i.qty ? `<span class="font-normal opacity-70">(${i.qty})</span>`:''}</span>`).join('')}
+                            </div>
+                        </details>
                         
                         <details class="mb-2 group">
                             <summary class="list-none text-[10px] font-bold text-[#8FA895] cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">
                                 Préparation <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i>
                             </summary>
-                            <div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">
-                                ${stepsHtml}
-                            </div>
+                            <div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">${stepsHtml}</div>
                         </details>
 
                         <details class="group">
@@ -492,8 +524,10 @@
                 </div>`
             }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
-            // 3. Shopping List
+            // 3. COURSES (Groupé par magasin, incluant les ajouts manuels)
             let shopping = {};
+            
+            // Ingrédients du menu
             Object.values(state.planning[weekKey]).forEach(dayPlan => {
                 let pArray = Array.isArray(dayPlan) ? dayPlan : [dayPlan];
                 pArray.forEach(rid => {
@@ -502,27 +536,47 @@
                         const low = i.name.toLowerCase();
                         if(!state.stock.includes(low) && !state.hiddenShop.includes(low)) {
                             if(!shopping[i.store]) shopping[i.store] = [];
-                            if(!shopping[i.store].find(x => x.name.toLowerCase() === low)) shopping[i.store].push(i);
+                            // On cherche si l'ingrédient existe déjà pour additionner les quantités/prix (simplifié)
+                            const existing = shopping[i.store].find(x => x.name.toLowerCase() === low);
+                            if(!existing) {
+                                shopping[i.store].push({ ...i, idRef: i.name, isManual: false });
+                            }
                         }
                     });
                 });
             });
+
+            // Articles manuels
+            if(state.customShop) {
+                state.customShop.forEach(item => {
+                    if(!shopping[item.store]) shopping[item.store] = [];
+                    shopping[item.store].push({ name: item.name, price: 0, qty: '', idRef: item.id, isManual: true });
+                });
+            }
+
+            document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
 
             document.getElementById('shopping-by-store').innerHTML = Object.keys(shopping).map(store => `
                 <div class="card border-l-4 border-[#C5A065]">
                     <h4 class="text-[10px] font-black uppercase text-[#C5A065] mb-3 tracking-widest">${store}</h4>
                     <div class="space-y-3">
                         ${shopping[store].map(i => {
-                            const isPurchased = state.purchased?.includes(i.name);
+                            const isPurchased = state.purchased?.includes(i.idRef.toString());
                             return `
                             <div class="flex justify-between items-center group">
-                                <div onclick="togglePurchased('${i.name}')" class="flex-1 cursor-pointer flex items-center gap-2">
+                                <div onclick="togglePurchased('${i.idRef}')" class="flex-1 cursor-pointer flex items-center gap-2">
                                     <i class="fa-regular ${isPurchased ? 'fa-square-check text-[#8FA895]' : 'fa-square text-gray-300'} text-lg transition-colors"></i>
-                                    <span class="text-xs font-medium ${isPurchased ? 'line-through text-gray-300 italic' : 'text-gray-600'}">${i.name}</span>
+                                    <span class="text-xs font-medium ${isPurchased ? 'line-through text-gray-300 italic' : 'text-gray-600'}">
+                                        ${i.name} ${i.qty ? `<span class="text-[10px] text-gray-400">(${i.qty})</span>` : ''}
+                                        ${i.isManual ? `<span class="text-[8px] bg-yellow-50 text-yellow-600 px-1 rounded ml-1">+ Ajout</span>` : ''}
+                                    </span>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <span class="text-[10px] font-bold text-gray-300">${i.price.toFixed(2)}€</span>
-                                    <button onclick="hideFromShop('${i.name}')" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                                    ${!i.isManual ? `<span class="text-[10px] font-bold text-gray-300">${i.price.toFixed(2)}€</span>` : ''}
+                                    ${i.isManual 
+                                        ? `<button onclick="removeManualItem(${i.idRef})" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>` 
+                                        : `<button onclick="hideFromShop('${i.name}')" class="text-red-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>`
+                                    }
                                 </div>
                             </div>`
                         }).join('')}
@@ -530,11 +584,8 @@
                 </div>`).join('') || '<p class="text-center text-gray-300 text-xs italic py-10">Aucune course prévue ✨</p>';
 
             const restoreBtn = document.getElementById('restore-hidden-btn');
-            if (state.hiddenShop && state.hiddenShop.length > 0) {
-                restoreBtn.classList.remove('hidden');
-            } else {
-                restoreBtn.classList.add('hidden');
-            }
+            if (state.hiddenShop && state.hiddenShop.length > 0) { restoreBtn.classList.remove('hidden'); } 
+            else { restoreBtn.classList.add('hidden'); }
 
             // 4. Magasins & Stock
             document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
