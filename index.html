@@ -159,7 +159,7 @@
     </nav>
 
     <script>
-        // CONFIG FIREBASE
+        // CONFIG FIREBASE (IDENTIQUE A TON ORIGINE)
         const firebaseConfig = {
             apiKey: "AIzaSyCBZ96lSFIWzPsHklwk3ZU8kfWudfp8oVQ",
             authDomain: "samcy-1136c.firebaseapp.com",
@@ -171,13 +171,22 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // ==========================================
-        // LES VRAIS LIENS VERS TES DONNÉES !
-        const COLLECTION_NAME = "miam_cocon"; 
-        const USER_ID = "cuisine_cocon_user";
-        // ==========================================
+        // LE VRAI DOSSIER QUE J'AVAIS CASSÉ
+        const userId = "cuisine_cocon_user";
 
-        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [], prices: {} };
+        // Initialisation de l'état avec toutes les nouvelles options
+        let state = { 
+            recipes: [], 
+            planning: {}, 
+            stores: ["Lidl", "Carrefour"], 
+            stock: [], 
+            purchased: [], 
+            hiddenShop: [], 
+            cookedSlots: [], 
+            customShop: [], 
+            prices: {} 
+        };
+        
         let tempIngredients = [];
         let tmpImg = '';
         let weekOffset = 0; 
@@ -215,17 +224,19 @@
             }
         };
 
-        db.collection(COLLECTION_NAME).doc(USER_ID).onSnapshot(doc => {
+        // LA MAGIE OPERE ICI : ON RECONNECTE TON ANCIEN DOSSIER
+        db.collection('miam_cocon').doc(userId).onSnapshot(doc => {
             if(doc.exists) { 
                 const data = doc.data();
+                // On fusionne les anciennes données avec la nouvelle structure pour rien perdre
                 state = { ...state, ...data }; 
                 renderAll(); 
             } else { 
-                db.collection(COLLECTION_NAME).doc(USER_ID).set(state); 
+                db.collection('miam_cocon').doc(userId).set(state); 
             }
         });
 
-        const save = () => db.collection(COLLECTION_NAME).doc(USER_ID).set(state);
+        const save = () => db.collection('miam_cocon').doc(userId).set(state);
 
         window.addPlanSlot = (week, day) => {
             if (!state.planning[week]) state.planning[week] = {};
@@ -390,7 +401,6 @@
             if(!state.prices) state.prices = {};
             if(!state.recipes) state.recipes = [];
 
-            // 1. GENERER SHOPPING POUR CALCULER LE BUDGET
             let shopping = {};
             
             Object.values(state.planning[weekKey]).forEach(dayPlan => {
@@ -424,7 +434,6 @@
             });
             document.getElementById('total-budget').innerText = budget.toFixed(2);
 
-            // 2. RENDU DU PLANNING
             document.getElementById('planner-container').innerHTML = days.map(d => {
                 let dayPlan = state.planning[weekKey][d];
                 if (typeof dayPlan === 'number') { dayPlan = [dayPlan]; state.planning[weekKey][d] = dayPlan; }
@@ -457,7 +466,6 @@
                 </div>`;
             }).join('');
 
-            // 3. RECETTES
             const filteredRecipes = state.recipes.filter(r => {
                 if (currentFilter === 'fav') return r.fav;
                 if (currentFilter !== 'all') return r.cat === currentFilter;
@@ -517,7 +525,6 @@
                 </div>`
             }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
-            // 4. RENDU DES COURSES
             document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
 
             document.getElementById('shopping-by-store').innerHTML = Object.keys(shopping).map(store => `
@@ -553,7 +560,6 @@
             if (state.hiddenShop && state.hiddenShop.length > 0) { restoreBtn.classList.remove('hidden'); } 
             else { restoreBtn.classList.add('hidden'); }
 
-            // 5. MAGASINS & STOCK
             document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
             document.getElementById('ing-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
             document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
