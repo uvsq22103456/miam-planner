@@ -78,9 +78,9 @@
                     </details>
 
                     <div class="flex gap-2 mb-2">
-                        <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-1/2">
-                        <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-1/4">
-                        <select id="ing-store" class="input-style bg-white mb-0 w-1/4 px-1"></select>
+                        <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-[45%]">
+                        <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-[25%]">
+                        <select id="ing-store" class="input-style bg-white mb-0 w-[30%] px-1"></select>
                     </div>
                     <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase tracking-wider mb-3">Ajouter (ou touche Entrée)</button>
                     <div id="temp-ings" class="space-y-1"></div>
@@ -101,7 +101,7 @@
                     <div id="photo-preview" class="absolute inset-0 bg-cover bg-center hidden opacity-40"></div>
                 </label>
 
-                <button id="btn-save-recipe" onclick="saveRecipeToFirebase()" class="btn-action bg-[#8FA895]">Enregistrer au carnet</button>
+                <button id="btn-save-recipe" onclick="saveRecipeToFirebase()" class="bg-[#8FA895] text-white w-full rounded-xl font-bold uppercase text-[11px] py-3 shadow-md mt-2">Enregistrer au carnet</button>
             </div>
         </details>
 
@@ -123,7 +123,7 @@
             <div class="flex gap-2">
                 <input type="text" id="manual-item" placeholder="Ex: Sopalin..." class="input-style mb-0 bg-white w-1/2">
                 <select id="manual-store" class="input-style bg-white mb-0 w-1/4 px-1"></select>
-                <button onclick="addManualItem()" class="bg-[#3A4D3F] text-white px-2 rounded-xl text-[10px] font-bold uppercase w-1/4">Ajouter</button>
+                <button onclick="addManualItem()" class="bg-[#3A4D3F] text-white px-2 rounded-xl text-[10px] font-bold uppercase w-1/4 shadow-sm">Ajouter</button>
             </div>
         </div>
 
@@ -139,13 +139,13 @@
             <h3 class="font-bold text-sm uppercase mb-3">🏷️ Mes Magasins</h3>
             <div class="flex gap-2">
                 <input type="text" id="new-store" placeholder="Lidl, Action..." class="input-style mb-0 bg-white">
-                <button onclick="addStore()" class="bg-[#3A4D3F] text-white px-4 rounded-xl text-xs font-bold">OK</button>
+                <button onclick="addStore()" class="bg-[#3A4D3F] text-white px-4 rounded-xl text-xs font-bold shadow-sm">OK</button>
             </div>
             <div id="stores-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
         <div class="card mt-4">
             <h3 class="font-bold text-sm uppercase mb-3">📦 Mon Placard (Stock)</h3>
-            <p class="text-[10px] text-gray-400 mb-2 italic">Le nom doit être EXACTEMENT le même que "Nom" dans tes recettes.</p>
+            <p class="text-[10px] text-gray-400 mb-2 italic">Ce qui est ici ne s'ajoute pas aux courses.</p>
             <input type="text" id="stock-input" onchange="addToStock()" placeholder="Farine, Oeufs..." class="input-style">
             <div id="stock-list" class="flex flex-wrap gap-2 mt-2"></div>
         </div>
@@ -159,6 +159,7 @@
     </nav>
 
     <script>
+        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCBZ96lSFIWzPsHklwk3ZU8kfWudfp8oVQ",
             authDomain: "samcy-1136c.firebaseapp.com",
@@ -169,7 +170,12 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const userId = "cuisine_cocon_user";
+        
+        // ==========================================
+        // LES VRAIS LIENS VERS TES DONNÉES !
+        const COLLECTION_NAME = "miam_cocon"; 
+        const USER_ID = "cuisine_cocon_user";
+        // ==========================================
 
         let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [], prices: {} };
         let tempIngredients = [];
@@ -209,12 +215,17 @@
             }
         };
 
-        db.collection('miam_cocon').doc(userId).onSnapshot(doc => {
-            if(doc.exists) { state = doc.data(); renderAll(); }
-            else { db.collection('miam_cocon').doc(userId).set(state); }
+        db.collection(COLLECTION_NAME).doc(USER_ID).onSnapshot(doc => {
+            if(doc.exists) { 
+                const data = doc.data();
+                state = { ...state, ...data }; 
+                renderAll(); 
+            } else { 
+                db.collection(COLLECTION_NAME).doc(USER_ID).set(state); 
+            }
         });
 
-        const save = () => db.collection('miam_cocon').doc(userId).set(state);
+        const save = () => db.collection(COLLECTION_NAME).doc(USER_ID).set(state);
 
         window.addPlanSlot = (week, day) => {
             if (!state.planning[week]) state.planning[week] = {};
@@ -248,10 +259,7 @@
                 save();
             }
         };
-        window.removeManualItem = (id) => {
-            state.customShop = state.customShop.filter(x => x.id !== id);
-            save();
-        };
+        window.removeManualItem = (id) => { state.customShop = state.customShop.filter(x => x.id !== id); save(); };
 
         window.addIngToList = () => {
             const name = document.getElementById('ing-name').value.trim();
@@ -274,9 +282,7 @@
             
             lines.forEach(line => {
                 const clean = line.trim();
-                if(clean) {
-                    tempIngredients.push({ name: clean, qty: '', store: defaultStore });
-                }
+                if(clean) tempIngredients.push({ name: clean, qty: '', store: defaultStore });
             });
             document.getElementById('bulk-ingredients').value = '';
             document.querySelector('#bulk-ingredients').parentElement.removeAttribute('open');
@@ -352,64 +358,24 @@
                 if (editingRecipeId) {
                     const index = state.recipes.findIndex(x => x.id === editingRecipeId);
                     if (index !== -1) {
-                        state.recipes[index] = {
-                            ...state.recipes[index],
-                            name, cat, link: document.getElementById('r-link').value, 
-                            ingredients: tempIngredients, img: tmpImg, prepTime, airfryer, steps
-                        };
+                        state.recipes[index] = { ...state.recipes[index], name, cat, link: document.getElementById('r-link').value, ingredients: tempIngredients, img: tmpImg, prepTime, airfryer, steps };
                     }
                 } else {
-                    state.recipes.push({ 
-                        id: Date.now(), name, cat, 
-                        link: document.getElementById('r-link').value, 
-                        ingredients: tempIngredients, img: tmpImg, 
-                        prepTime, airfryer, steps,
-                        fav: false, rating: 0, notes: "" 
-                    });
+                    state.recipes.push({ id: Date.now(), name, cat, link: document.getElementById('r-link').value, ingredients: tempIngredients, img: tmpImg, prepTime, airfryer, steps, fav: false, rating: 0, notes: "" });
                 }
                 resetRecipeForm();
                 document.getElementById('recipe-form-details').open = false;
                 save();
-            } else { alert("Il manque au moins le nom de la recette !"); }
+            } else { alert("Il manque le nom de la recette !"); }
         };
 
-        window.addToStock = () => {
-            const s = document.getElementById('stock-input').value.trim().toLowerCase();
-            if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; save(); }
-        };
-
+        window.addToStock = () => { const s = document.getElementById('stock-input').value.trim().toLowerCase(); if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; save(); } };
         window.toggleFav = (id) => { const r = state.recipes.find(x => x.id === id); if(r) { r.fav = !r.fav; save(); } };
         window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x.id === id); if(r) { r[field] = val; save(); } };
-
-        // NOUVEAU: Mettre à jour le prix depuis la liste de courses
-        window.updatePrice = (name, val) => {
-            if(!state.prices) state.prices = {};
-            state.prices[name.toLowerCase()] = parseFloat(val) || 0;
-            save(); // Sauvegarde et déclenche le re-rendu (qui va recalculer le budget)
-        };
-
-        window.filterRecipes = (f) => {
-            currentFilter = f;
-            document.querySelectorAll('.filter-chip').forEach(btn => {
-                btn.classList.remove('bg-[#8FA895]', 'text-white'); btn.classList.add('bg-white', 'text-gray-400');
-                if(btn.id === 'f-' + f) { btn.classList.remove('bg-white', 'text-gray-400'); btn.classList.add('bg-[#8FA895]', 'text-white'); }
-            });
-            renderAll();
-        };
-
-        window.togglePurchased = (n) => {
-            if(!state.purchased) state.purchased = [];
-            if(state.purchased.includes(n)) state.purchased = state.purchased.filter(x => x !== n);
-            else state.purchased.push(n);
-            save();
-        };
-
-        window.hideFromShop = (ingName) => {
-            if(!state.hiddenShop) state.hiddenShop = [];
-            const lowName = ingName.toLowerCase();
-            if(!state.hiddenShop.includes(lowName)) { state.hiddenShop.push(lowName); save(); }
-        };
-
+        window.updatePrice = (name, val) => { if(!state.prices) state.prices = {}; state.prices[name.toLowerCase()] = parseFloat(val) || 0; save(); };
+        window.filterRecipes = (f) => { currentFilter = f; document.querySelectorAll('.filter-chip').forEach(btn => { btn.classList.remove('bg-[#8FA895]', 'text-white'); btn.classList.add('bg-white', 'text-gray-400'); if(btn.id === 'f-' + f) { btn.classList.remove('bg-white', 'text-gray-400'); btn.classList.add('bg-[#8FA895]', 'text-white'); } }); renderAll(); };
+        window.togglePurchased = (n) => { if(!state.purchased) state.purchased = []; if(state.purchased.includes(n)) state.purchased = state.purchased.filter(x => x !== n); else state.purchased.push(n); save(); };
+        window.hideFromShop = (ingName) => { if(!state.hiddenShop) state.hiddenShop = []; const low = ingName.toLowerCase(); if(!state.hiddenShop.includes(low)) { state.hiddenShop.push(low); save(); } };
         window.restoreHiddenShop = () => { state.hiddenShop = []; save(); };
 
         function renderAll() {
@@ -422,8 +388,9 @@
             if(!state.hiddenShop) state.hiddenShop = [];
             if(!state.cookedSlots) state.cookedSlots = [];
             if(!state.prices) state.prices = {};
+            if(!state.recipes) state.recipes = [];
 
-            // 1. GESTION DES COURSES (Générée avant le planning pour pouvoir calculer le budget complet)
+            // 1. GENERER SHOPPING POUR CALCULER LE BUDGET
             let shopping = {};
             
             Object.values(state.planning[weekKey]).forEach(dayPlan => {
@@ -431,13 +398,11 @@
                 pArray.forEach(rid => {
                     const r = state.recipes.find(x => x.id === rid);
                     if(r && r.ingredients) r.ingredients.forEach(i => {
-                        const low = i.name.toLowerCase();
-                        if(!state.stock.includes(low) && !state.hiddenShop.includes(low)) {
+                        const low = i.name ? i.name.toLowerCase() : "";
+                        if(low && !state.stock.includes(low) && !state.hiddenShop.includes(low)) {
                             if(!shopping[i.store]) shopping[i.store] = [];
-                            const existing = shopping[i.store].find(x => x.name.toLowerCase() === low);
-                            if(!existing) {
-                                shopping[i.store].push({ ...i, idRef: i.name, isManual: false });
-                            }
+                            const existing = shopping[i.store].find(x => (x.name||"").toLowerCase() === low);
+                            if(!existing) shopping[i.store].push({ ...i, idRef: i.name, isManual: false });
                         }
                     });
                 });
@@ -450,17 +415,14 @@
                 });
             }
 
-            // CALCUL DU BUDGET TOTAL (Basé sur la liste de courses générée + ajouts manuels)
             Object.values(shopping).forEach(storeItems => {
                 storeItems.forEach(item => {
-                    const itemPrice = state.prices[item.name.toLowerCase()] || 0;
+                    const low = item.name ? item.name.toLowerCase() : "";
+                    const itemPrice = state.prices[low] || 0;
                     budget += itemPrice;
                 });
             });
-
-            // MISE A JOUR AFFICHAGE BUDGET
             document.getElementById('total-budget').innerText = budget.toFixed(2);
-
 
             // 2. RENDU DU PLANNING
             document.getElementById('planner-container').innerHTML = days.map(d => {
@@ -475,9 +437,7 @@
 
                     return `
                     <div class="flex justify-between items-center bg-gray-50/50 p-2 rounded-lg mb-1">
-                        <button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-2 text-[14px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors">
-                            <i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i>
-                        </button>
+                        <button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-2 text-[14px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors"><i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i></button>
                         <span class="text-[11px] font-bold ${isCooked ? 'text-[#8FA895] line-through opacity-70' : 'text-gray-700'} truncate flex-1">${r ? r.name : 'Choisir un plat...'}</span>
                         <select onchange="updatePlan('${weekKey}', '${d}', ${index}, parseInt(this.value))" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none ml-2">
                             <option value="0">---</option>
@@ -497,7 +457,6 @@
                 </div>`;
             }).join('');
 
-
             // 3. RECETTES
             const filteredRecipes = state.recipes.filter(r => {
                 if (currentFilter === 'fav') return r.fav;
@@ -513,9 +472,7 @@
                 return `
                 <div class="card p-0 overflow-hidden relative">
                     <span class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold shadow-sm uppercase z-10 text-gray-600">${r.cat || 'Salé'}</span>
-                    <button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}">
-                        <i class="fa-solid fa-heart"></i>
-                    </button>
+                    <button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}"><i class="fa-solid fa-heart"></i></button>
                     ${r.img ? `<div class="h-32 bg-cover bg-center" style="background-image:url(${r.img})"></div>` : ''}
                     <div class="p-4">
                         <div class="flex justify-between items-center mb-2">
@@ -560,8 +517,7 @@
                 </div>`
             }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
-
-            // 4. RENDU DE LA LISTE DE COURSES
+            // 4. RENDU DES COURSES
             document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
 
             document.getElementById('shopping-by-store').innerHTML = Object.keys(shopping).map(store => `
@@ -570,8 +526,9 @@
                     <div class="space-y-3">
                         ${shopping[store].map(i => {
                             const isPurchased = state.purchased?.includes(i.idRef.toString());
-                            const itemPrice = state.prices[i.name.toLowerCase()] || ''; // On récupère le prix mémorisé
-                            const safeName = i.name.replace(/'/g, "\\'"); // Sécurité pour les apostrophes
+                            const low = i.name ? i.name.toLowerCase() : "";
+                            const itemPrice = state.prices[low] || '';
+                            const safeName = i.name ? i.name.replace(/'/g, "\\'") : "";
                             
                             return `
                             <div class="flex justify-between items-center group">
@@ -585,11 +542,7 @@
                                 <div class="flex items-center gap-2">
                                     <input type="number" step="0.01" value="${itemPrice}" onchange="updatePrice('${safeName}', this.value)" placeholder="Prix" class="w-12 bg-transparent text-right text-[10px] font-bold text-gray-500 outline-none border-b border-gray-200 focus:border-[#C5A065]">
                                     <span class="text-[10px] font-bold text-gray-400">€</span>
-                                    
-                                    ${i.isManual 
-                                        ? `<button onclick="removeManualItem(${i.idRef})" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>` 
-                                        : `<button onclick="hideFromShop('${safeName}')" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>`
-                                    }
+                                    ${i.isManual ? `<button onclick="removeManualItem(${i.idRef})" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>` : `<button onclick="hideFromShop('${safeName}')" class="text-red-300 hover:text-red-500 ml-1"><i class="fa-solid fa-trash-can"></i></button>`}
                                 </div>
                             </div>`
                         }).join('')}
@@ -600,7 +553,7 @@
             if (state.hiddenShop && state.hiddenShop.length > 0) { restoreBtn.classList.remove('hidden'); } 
             else { restoreBtn.classList.add('hidden'); }
 
-            // 5. Magasins & Stock
+            // 5. MAGASINS & STOCK
             document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
             document.getElementById('ing-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
             document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
