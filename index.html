@@ -63,21 +63,26 @@
                     <option value="Salé">🍝 Salé</option>
                     <option value="Sucré">🍰 Sucré</option>
                 </select>
+                <input type="text" id="r-link" placeholder="Lien Vidéo TikTok/Insta..." class="input-style">
+                
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <p class="text-[10px] font-black uppercase text-[#8FA895] mb-2"><i class="fa-solid fa-basket-shopping mr-1"></i> Ingrédients</p>
+                    
                     <details class="bg-white border border-gray-200 rounded-lg p-2 mb-3">
                         <summary class="text-[10px] font-bold text-[#C5A065] cursor-pointer outline-none"><i class="fa-solid fa-paste mr-1"></i> Copier/Coller rapide</summary>
                         <textarea id="bulk-ingredients" placeholder="200g de farine&#10;3 oeufs" class="input-style mt-2 h-20 text-xs bg-gray-50 mb-2"></textarea>
                         <button onclick="importBulkIngredients()" class="w-full py-2 bg-gray-100 rounded-md text-[9px] font-bold text-gray-600 uppercase tracking-widest border border-gray-200">Importer</button>
                     </details>
+
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="ing-name" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Nom (Farine)" class="input-style bg-white mb-0 w-[45%]">
                         <input type="text" id="ing-qty" onkeypress="if(event.key === 'Enter') addIngToList()" placeholder="Qté (200g)" class="input-style bg-white mb-0 w-[25%]">
                         <select id="ing-store" class="input-style bg-white mb-0 w-[30%] px-1"></select>
                     </div>
-                    <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase">Ajouter l'ingrédient</button>
-                    <div id="temp-ings" class="space-y-1 mt-2"></div>
+                    <button onclick="addIngToList()" class="w-full py-2 bg-white border border-gray-200 rounded-lg text-[10px] font-bold text-[#8FA895] uppercase tracking-wider mb-3">Ajouter manuellement</button>
+                    <div id="temp-ings" class="space-y-1"></div>
                 </div>
+
                 <div class="bg-[#FFFDF5] p-4 rounded-xl border border-yellow-50">
                     <p class="text-[10px] font-black uppercase text-[#C5A065] mb-2"><i class="fa-solid fa-clock mr-1"></i> Temps & Cuisson</p>
                     <div class="flex gap-2 mb-2">
@@ -86,27 +91,30 @@
                     </div>
                     <textarea id="r-steps" placeholder="Étapes (retour à la ligne pour séparer)..." class="input-style bg-white h-24 mb-0"></textarea>
                 </div>
-                <input type="text" id="r-link" placeholder="Lien Vidéo TikTok/Insta..." class="input-style">
-                <label class="block w-full py-4 text-center border-2 border-dashed border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#8FA895] cursor-pointer bg-gray-50 relative overflow-hidden">
-                    <span id="txt-photo"><i class="fa-solid fa-camera mr-2"></i>Photo de la recette</span>
-                    <input type="file" class="hidden" accept="image/*" onchange="compressImg(this)">
-                    <div id="photo-preview" class="absolute inset-0 bg-cover bg-center hidden opacity-40"></div>
+
+                <label id="photo-label" class="block w-full py-4 text-center border-2 border-dashed border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#8FA895] cursor-pointer bg-gray-50 relative overflow-hidden transition-colors">
+                    <span id="txt-photo" class="relative z-10 p-1 rounded bg-white/70"><i class="fa-solid fa-camera mr-2"></i>Photo de la recette</span>
+                    <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" accept="image/*" onchange="compressImg(this)">
+                    <div id="photo-preview" class="absolute inset-0 bg-cover bg-center hidden opacity-50 z-0"></div>
                 </label>
+
                 <button id="btn-save-recipe" onclick="saveRecipeToFirebase()" class="bg-[#8FA895] text-white w-full rounded-xl font-bold uppercase text-[11px] py-4 shadow-md mt-2">Enregistrer au carnet</button>
             </div>
         </details>
-        
+
         <div class="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
             <button onclick="filterRecipes('all')" id="f-all" class="filter-chip active bg-[#8FA895] text-white">Tout</button>
             <button onclick="filterRecipes('Salé')" id="f-Salé" class="filter-chip">🍝 Salé</button>
             <button onclick="filterRecipes('Sucré')" id="f-Sucré" class="filter-chip">🍰 Sucré</button>
             <button onclick="filterRecipes('fav')" id="f-fav" class="filter-chip">❤️ Favoris</button>
         </div>
+
         <div id="recipes-list" class="space-y-4"></div>
     </div>
 
     <div id="shop" class="page">
         <h2 class="serif italic text-lg mb-4">Liste de courses (<span id="shop-week-label">Actuelle</span>)</h2>
+        
         <div class="card bg-[#FFFDF5] border border-yellow-50 mb-6 p-4">
             <h3 class="font-bold text-[10px] uppercase text-[#C5A065] mb-2">🛒 Ajouter manuel</h3>
             <div class="flex gap-2">
@@ -115,7 +123,9 @@
                 <button onclick="addManualItem()" class="bg-[#3A4D3F] text-white px-2 rounded-xl text-[10px] font-bold uppercase w-1/4">OK</button>
             </div>
         </div>
+
         <div id="shopping-by-store" class="space-y-6"></div>
+        
         <div id="restore-hidden-btn" class="hidden mt-6 text-center">
             <button onclick="restoreHiddenShop()" class="text-[10px] font-bold text-gray-400 uppercase border border-gray-200 px-4 py-2 rounded-full">Restaurer articles masqués ↺</button>
         </div>
@@ -126,7 +136,7 @@
             <h3 class="font-bold text-sm uppercase mb-3">🏷️ Mes Magasins</h3>
             <div class="flex gap-2">
                 <input type="text" id="new-store" placeholder="Lidl, Action..." class="input-style mb-0 bg-white">
-                <button onclick="addStore()" class="bg-[#3A4D3F] text-white px-4 rounded-xl text-xs font-bold">OK</button>
+                <button onclick="addStore()" class="bg-[#3A4D3F] text-white px-4 rounded-xl text-xs font-bold shadow-sm">OK</button>
             </div>
             <div id="stores-tags" class="flex flex-wrap gap-2 mt-3"></div>
         </div>
@@ -157,29 +167,37 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // Exactement comme sur ta capture d'écran !
+        // TES VRAIES RECETTES SONT ICI !
         const coll = "miam_cocon";
         const userId = "cuisine_cocon_user";
 
-        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [], prices: {} };
+        let state = { 
+            recipes: [], 
+            planning: {}, 
+            stores: ["Lidl", "Carrefour", "Action"], 
+            stock: [], 
+            purchased: [], 
+            hiddenShop: [], 
+            cookedSlots: [], 
+            customShop: [], 
+            prices: {} 
+        };
+        
         let tempIngredients = [];
         let tmpImg = '';
         let weekOffset = 0; 
         let currentFilter = 'all';
         let editingRecipeId = null;
 
-        // BOUCLIER ANTI-CRASH (Nettoie les données cassées de Firebase)
         function sanitizeState() {
             if(!Array.isArray(state.recipes)) state.recipes = [];
-            state.recipes = state.recipes.filter(r => r !== null && typeof r === 'object'); // Supprime les fantômes
-            
+            state.recipes = state.recipes.filter(r => r !== null && typeof r === 'object');
             if(!Array.isArray(state.stock)) state.stock = [];
             if(!Array.isArray(state.purchased)) state.purchased = [];
             if(!Array.isArray(state.hiddenShop)) state.hiddenShop = [];
             if(!Array.isArray(state.cookedSlots)) state.cookedSlots = [];
             if(!Array.isArray(state.customShop)) state.customShop = [];
             if(!Array.isArray(state.stores) || state.stores.length === 0) state.stores = ["Lidl", "Carrefour"];
-            
             if(typeof state.planning !== 'object' || state.planning === null) state.planning = {};
             if(typeof state.prices !== 'object' || state.prices === null) state.prices = {};
         }
@@ -209,19 +227,37 @@
         window.changeWeek = (dir) => { weekOffset += dir; renderAll(); };
 
         window.compressImg = (inp) => {
-            const f = inp.files[0]; if(!f) return;
-            const r = new FileReader(); r.readAsDataURL(f);
+            const f = inp.files[0]; 
+            if(!f) return;
+            
+            document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-2'></i>Traitement...";
+            
+            const r = new FileReader(); 
+            r.readAsDataURL(f);
             r.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
+                const img = new Image(); 
                 img.onload = () => {
-                    const c = document.createElement('canvas'); const ctx = c.getContext('2d');
-                    const sc = 400 / img.width; c.width = 400; c.height = img.height * sc;
+                    const c = document.createElement('canvas'); 
+                    const ctx = c.getContext('2d');
+                    const sc = 400 / img.width; 
+                    c.width = 400; 
+                    c.height = Math.floor(img.height * sc); 
+                    
                     ctx.drawImage(img, 0, 0, c.width, c.height);
                     tmpImg = c.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('photo-preview').style.backgroundImage = `url(${tmpImg})`;
-                    document.getElementById('photo-preview').classList.remove('hidden');
-                    document.getElementById('txt-photo').innerText = "Photo OK";
-                }
+                    
+                    const preview = document.getElementById('photo-preview');
+                    preview.style.backgroundImage = `url(${tmpImg})`;
+                    preview.classList.remove('hidden');
+                    
+                    document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-check mr-2 text-green-600'></i>Photo ajoutée !";
+                    document.getElementById('photo-label').classList.replace('bg-gray-50', 'bg-[#8FA895]/20');
+                    document.getElementById('photo-label').classList.replace('border-gray-200', 'border-[#8FA895]');
+                };
+                img.onerror = () => {
+                    document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-triangle-exclamation mr-2 text-red-500'></i>Erreur";
+                };
+                img.src = e.target.result;
             }
         };
 
@@ -230,26 +266,38 @@
             if (!state.planning[w]) state.planning[w] = {};
             if (!Array.isArray(state.planning[w][day])) state.planning[w][day] = [];
             state.planning[w][day].push(0);
+            renderAll(); 
             save();
         };
 
-        window.removePlanSlot = (week, day, index) => { state.planning["w"+week][day].splice(index, 1); save(); };
-        window.updatePlan = (week, day, idx, val) => { state.planning[week][day][idx] = val; save(); };
+        window.removePlanSlot = (week, day, index) => { 
+            state.planning["w"+week][day].splice(index, 1); 
+            renderAll(); 
+            save(); 
+        };
+        
+        // LA CORRECTION EST ICI : on rafraîchit l'affichage AVANT de sauvegarder, avec == pour tout capter
+        window.updatePlan = (week, day, idx, val) => { 
+            state.planning[week][day][idx] = val; 
+            renderAll(); 
+            save(); 
+        };
         
         window.toggleCooked = (week, day, index) => {
             const id = `${week}-${day}-${index}`;
             state.cookedSlots = state.cookedSlots.includes(id) ? state.cookedSlots.filter(x => x !== id) : [...state.cookedSlots, id];
+            renderAll();
             save();
         };
 
-        window.addStore = () => { const s = document.getElementById('new-store').value.trim(); if(s) { state.stores.push(s); document.getElementById('new-store').value=''; save(); } };
+        window.addStore = () => { const s = document.getElementById('new-store').value.trim(); if(s) { state.stores.push(s); document.getElementById('new-store').value=''; renderAll(); save(); } };
         
         window.addManualItem = () => {
             const name = document.getElementById('manual-item').value.trim();
             const store = document.getElementById('manual-store').value;
-            if(name) { state.customShop.push({ id: Date.now(), name, store }); document.getElementById('manual-item').value = ''; save(); }
+            if(name) { state.customShop.push({ id: Date.now(), name, store }); document.getElementById('manual-item').value = ''; renderAll(); save(); }
         };
-        window.removeManualItem = (id) => { state.customShop = state.customShop.filter(x => x.id !== id); save(); };
+        window.removeManualItem = (id) => { state.customShop = state.customShop.filter(x => x.id != id); renderAll(); save(); };
 
         window.addIngToList = () => {
             const name = document.getElementById('ing-name').value.trim();
@@ -287,7 +335,7 @@
         }
 
         window.editRecipe = (id) => {
-            const r = state.recipes.find(x => x && x.id === id);
+            const r = state.recipes.find(x => x && x.id == id);
             if(!r) return;
             document.getElementById('r-name').value = r.name || ''; 
             document.getElementById('r-cat').value = r.cat || 'Salé';
@@ -297,14 +345,17 @@
             document.getElementById('r-steps').value = r.steps || '';
             tempIngredients = Array.isArray(r.ingredients) ? [...r.ingredients] : []; 
             renderTempIngs();
+            
             tmpImg = r.img || '';
             if(tmpImg) { 
                 document.getElementById('photo-preview').style.backgroundImage = `url(${tmpImg})`; 
                 document.getElementById('photo-preview').classList.remove('hidden'); 
-                document.getElementById('txt-photo').innerText = "Photo existante"; 
+                document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-image mr-2'></i>Photo existante"; 
+                document.getElementById('photo-label').classList.add('bg-[#8FA895]/10', 'border-[#8FA895]');
             } else { 
                 document.getElementById('photo-preview').classList.add('hidden'); 
-                document.getElementById('txt-photo').innerText = "Ajouter une photo"; 
+                document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-camera mr-2'></i>Ajouter une photo"; 
+                document.getElementById('photo-label').classList.remove('bg-[#8FA895]/20', 'border-[#8FA895]');
             }
             editingRecipeId = id;
             document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-pen mr-2"></i>Modifier la Recette';
@@ -318,7 +369,13 @@
             editingRecipeId = null; tempIngredients = []; tmpImg = '';
             document.getElementById('r-name').value = ''; document.getElementById('r-link').value = ''; document.getElementById('r-prep-time').value = '';
             document.getElementById('r-airfryer').value = ''; document.getElementById('r-steps').value = ''; document.getElementById('ing-name').value = ''; document.getElementById('ing-qty').value = ''; 
-            document.getElementById('photo-preview').classList.add('hidden'); document.getElementById('txt-photo').innerText = "Photo de la recette"; document.getElementById('temp-ings').innerHTML = '';
+            
+            document.getElementById('photo-preview').classList.add('hidden'); 
+            document.getElementById('txt-photo').innerHTML = "<i class='fa-solid fa-camera mr-2'></i>Photo de la recette"; 
+            document.getElementById('photo-label').classList.replace('bg-[#8FA895]/20', 'bg-gray-50');
+            document.getElementById('photo-label').classList.replace('border-[#8FA895]', 'border-gray-200');
+            
+            document.getElementById('temp-ings').innerHTML = '';
             document.getElementById('form-title').innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i>Nouvelle Recette';
             document.getElementById('btn-save-recipe').innerText = "Enregistrer au carnet"; document.getElementById('btn-save-recipe').classList.replace('bg-[#C5A065]', 'bg-[#8FA895]');
         };
@@ -328,27 +385,27 @@
             if(name) {
                 const newData = { name, cat: document.getElementById('r-cat').value, link: document.getElementById('r-link').value, ingredients: tempIngredients, img: tmpImg, prepTime: document.getElementById('r-prep-time').value, airfryer: document.getElementById('r-airfryer').value, steps: document.getElementById('r-steps').value };
                 if (editingRecipeId) {
-                    const idx = state.recipes.findIndex(x => x && x.id === editingRecipeId);
+                    const idx = state.recipes.findIndex(x => x && x.id == editingRecipeId);
                     if (idx !== -1) state.recipes[idx] = { ...state.recipes[idx], ...newData };
                 } else { 
                     state.recipes.push({ id: Date.now(), ...newData, fav: false, rating: 0, notes: "" }); 
                 }
-                resetRecipeForm(); document.getElementById('recipe-form-details').open = false; save();
+                resetRecipeForm(); document.getElementById('recipe-form-details').open = false; renderAll(); save();
             } else { alert("Il manque le nom de la recette !"); }
         };
 
-        window.addToStock = () => { const s = document.getElementById('stock-input').value.trim().toLowerCase(); if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; save(); } };
-        window.toggleFav = (id) => { const r = state.recipes.find(x => x && x.id === id); if(r) { r.fav = !r.fav; save(); } };
-        window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x && x.id === id); if(r) { r[field] = val; save(); } };
-        window.updatePrice = (name, val) => { state.prices[name.toLowerCase()] = parseFloat(val) || 0; save(); };
+        window.addToStock = () => { const s = document.getElementById('stock-input').value.trim().toLowerCase(); if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; renderAll(); save(); } };
+        window.toggleFav = (id) => { const r = state.recipes.find(x => x && x.id == id); if(r) { r.fav = !r.fav; renderAll(); save(); } };
+        window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x && x.id == id); if(r) { r[field] = val; save(); } };
+        window.updatePrice = (name, val) => { state.prices[name.toLowerCase()] = parseFloat(val) || 0; renderAll(); save(); };
         window.filterRecipes = (f) => { currentFilter = f; document.querySelectorAll('.filter-chip').forEach(btn => { btn.classList.remove('bg-[#8FA895]', 'text-white'); btn.classList.add('bg-white', 'text-gray-400'); if(btn.id === 'f-' + f) { btn.classList.remove('bg-white', 'text-gray-400'); btn.classList.add('bg-[#8FA895]', 'text-white'); } }); renderAll(); };
-        window.togglePurchased = (n) => { state.purchased = state.purchased.includes(n) ? state.purchased.filter(x => x !== n) : [...state.purchased, n]; save(); };
-        window.hideFromShop = (ingName) => { const low = ingName.toLowerCase(); state.hiddenShop = state.hiddenShop.includes(low) ? state.hiddenShop : [...state.hiddenShop, low]; save(); };
-        window.restoreHiddenShop = () => { state.hiddenShop = []; save(); };
+        window.togglePurchased = (n) => { state.purchased = state.purchased.includes(n) ? state.purchased.filter(x => x !== n) : [...state.purchased, n]; renderAll(); save(); };
+        window.hideFromShop = (ingName) => { const low = ingName.toLowerCase(); state.hiddenShop = state.hiddenShop.includes(low) ? state.hiddenShop : [...state.hiddenShop, low]; renderAll(); save(); };
+        window.restoreHiddenShop = () => { state.hiddenShop = []; renderAll(); save(); };
 
         function renderAll() {
             try {
-                sanitizeState(); // Sécurité activée !
+                sanitizeState(); 
                 
                 const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
                 let budget = 0; 
@@ -357,12 +414,11 @@
                 document.getElementById('current-week-label').innerText = weekOffset === 0 ? "Cette semaine" : (weekOffset === 1 ? "Semaine prochaine" : "Semaine " + weekOffset);
                 document.getElementById('shop-week-label').innerText = weekOffset === 0 ? "Actuelle" : "Semaine " + weekOffset;
 
-                // CALCUL COURSES & BUDGET
                 let shopping = {};
                 Object.values(state.planning[weekKey] || {}).forEach(dayPlan => {
                     let pArray = Array.isArray(dayPlan) ? dayPlan : [dayPlan];
                     pArray.forEach(rid => {
-                        const r = state.recipes.find(x => x && x.id === rid);
+                        const r = state.recipes.find(x => x && x.id == rid);
                         if(r && Array.isArray(r.ingredients)) {
                             r.ingredients.forEach(i => {
                                 const low = i.name ? String(i.name).toLowerCase() : "";
@@ -383,25 +439,26 @@
                 Object.values(shopping).forEach(items => items.forEach(item => { budget += (state.prices[(item.name ? String(item.name).toLowerCase() : "")] || 0); }));
                 document.getElementById('total-budget').innerText = budget.toFixed(2);
 
-                // RENDU PLANNING
+                // AFFICHAGE DU PLANNING (Mise à jour pour reconnaitre le plat)
                 document.getElementById('planner-container').innerHTML = days.map(d => {
                     let dayPlan = (state.planning[weekKey] || {})[d];
-                    if(typeof dayPlan === 'number') dayPlan = [dayPlan];
+                    if(typeof dayPlan === 'number' || typeof dayPlan === 'string') dayPlan = [dayPlan];
                     if(!Array.isArray(dayPlan) || dayPlan.length===0) dayPlan = [0];
                     
                     return `<div class="card py-3"><div class="flex justify-between items-center mb-2 border-b border-gray-50 pb-2"><span class="text-[11px] font-bold text-[#8FA895] uppercase tracking-widest">${d}</span><button onclick="addPlanSlot(${weekOffset}, '${d}')" class="text-[9px] bg-[#8FA895] text-white px-2 py-1 rounded shadow-sm font-bold uppercase tracking-wider">+ Plat</button></div><div class="flex flex-col">${dayPlan.map((pid, index) => {
-                        const r = state.recipes.find(x => x && x.id === pid); 
+                        
+                        // L'UTILISATION DE == FAIT FONCTIONNER L'AFFICHAGE DU NOM PARFAITEMENT !
+                        const r = state.recipes.find(x => x && x.id == pid); 
                         const isCooked = state.cookedSlots.includes(`${weekKey}-${d}-${index}`);
-                        return `<div class="flex justify-between items-center bg-gray-50/50 p-2 rounded-lg mb-1"><button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-2 text-[14px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors"><i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i></button><span class="text-[11px] font-bold ${isCooked ? 'text-[#8FA895] line-through opacity-70' : 'text-gray-700'} truncate flex-1">${r ? r.name : 'Choisir un plat...'}</span><select onchange="updatePlan('${weekKey}', '${d}', ${index}, parseInt(this.value))" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none ml-2"><option value="0">---</option>${state.recipes.map(rec => `<option value="${rec.id}" ${pid === rec.id ? 'selected' : ''}>${rec.name}</option>`).join('')}</select>${dayPlan.length > 1 ? `<button onclick="removePlanSlot('${weekKey}', '${d}', ${index})" class="text-red-300 text-[10px] ml-2 px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
+                        
+                        return `<div class="flex justify-between items-center p-2 rounded-lg mb-1 transition-colors ${isCooked ? 'bg-[#8FA895]/10 border border-[#8FA895]/30' : 'bg-gray-50/50'}"><button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-3 text-[16px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors"><i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i></button><span class="text-[11px] ${isCooked ? 'text-emerald-700 font-black' : 'text-gray-700 font-bold'} truncate flex-1 mr-2">${r ? r.name : 'Choisir un plat...'}</span><select onchange="updatePlan('${weekKey}', '${d}', ${index}, this.value)" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none"><option value="0">---</option>${state.recipes.map(rec => `<option value="${rec.id}" ${rec.id == pid ? 'selected' : ''}>${rec.name}</option>`).join('')}</select>${dayPlan.length > 1 ? `<button onclick="removePlanSlot('${weekKey}', '${d}', ${index})" class="text-red-300 text-[12px] ml-2 px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
                     }).join('')}</div></div>`;
                 }).join('');
 
-                // RENDU RECETTES
                 document.getElementById('recipes-list').innerHTML = state.recipes.filter(r => currentFilter === 'all' || (currentFilter === 'fav' ? r.fav : r.cat === currentFilter)).map(r => {
-                    return `<div class="card p-0 overflow-hidden relative"><span class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold shadow-sm uppercase z-10 text-gray-600">${r.cat || 'Salé'}</span><button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}"><i class="fa-solid fa-heart"></i></button>${r.img ? `<div class="h-32 bg-cover bg-center" style="background-image:url(${r.img})"></div>` : ''}<div class="p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-[#3A4D3F]">${r.name}</h3><div class="flex gap-2"><button onclick="editRecipe(${r.id})" class="text-[#8FA895]"><i class="fa-solid fa-pen"></i></button><button onclick="if(confirm('Supprimer définitivement ?')) {state.recipes=state.recipes.filter(x=>x.id!==${r.id}); save();}" class="text-gray-300"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="flex gap-2 mb-3">${r.prepTime?`<span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-regular fa-clock mr-1"></i>${r.prepTime}</span>`:''}${r.airfryer?`<span class="bg-[#FFFDF5] border border-[#C5A065] text-[#C5A065] px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-solid fa-fan mr-1"></i>${r.airfryer}</span>`:''}</div>${r.link ? `<a href="${r.link}" target="_blank" class="text-[9px] text-[#C5A065] underline uppercase font-bold tracking-widest block mb-2">Lien Vidéo ↗</a>` : ''}<details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-gray-500 cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Ingrédients (${Array.isArray(r.ingredients) ? r.ingredients.length : 0}) <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-2 pb-2 flex flex-wrap gap-1">${(Array.isArray(r.ingredients) ? r.ingredients : []).map(i => `<span class="bg-white border border-gray-200 px-2 py-1 rounded text-[9px] text-gray-500 font-bold">${i.name} ${i.qty ? `<span class="font-normal opacity-70">(${i.qty})</span>`:''}</span>`).join('')}</div></details><details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-[#8FA895] cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Préparation <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">${r.steps?r.steps.replace(/\n/g,'<br>'):'<i class="text-gray-400">Aucune étape.</i>'}</div></details><details class="group"><summary class="list-none text-[10px] font-bold text-[#C5A065] cursor-pointer flex justify-between uppercase tracking-widest bg-[#FFFDF5] p-2 rounded-lg border border-yellow-50">Mon Avis & Notes <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 space-y-3"><div class="flex gap-1 text-lg justify-center">${[1,2,3,4,5].map(star => `<i onclick="updateRec(${r.id}, 'rating', ${star})" class="fa-solid fa-star cursor-pointer ${star <= (r.rating||0) ? 'text-yellow-400' : 'text-gray-200'}"></i>`).join('')}</div><textarea onchange="updateRec(${r.id}, 'notes', this.value)" placeholder="Mes remarques..." class="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl text-xs outline-none h-20 text-gray-600">${r.notes || ''}</textarea></div></details></div></div>`
+                    return `<div class="card p-0 overflow-hidden relative"><span class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold shadow-sm uppercase z-10 text-gray-600">${r.cat || 'Salé'}</span><button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}"><i class="fa-solid fa-heart"></i></button>${r.img ? `<div class="h-32 bg-cover bg-center" style="background-image:url(${r.img})"></div>` : ''}<div class="p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-[#3A4D3F]">${r.name}</h3><div class="flex gap-2"><button onclick="editRecipe(${r.id})" class="text-[#8FA895]"><i class="fa-solid fa-pen"></i></button><button onclick="if(confirm('Supprimer définitivement ?')) {state.recipes=state.recipes.filter(x=>x.id != '${r.id}'); save(); renderAll();}" class="text-gray-300"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="flex gap-2 mb-3">${r.prepTime?`<span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-regular fa-clock mr-1"></i>${r.prepTime}</span>`:''}${r.airfryer?`<span class="bg-[#FFFDF5] border border-[#C5A065] text-[#C5A065] px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-solid fa-fan mr-1"></i>${r.airfryer}</span>`:''}</div>${r.link ? `<a href="${r.link}" target="_blank" class="text-[9px] text-[#C5A065] underline uppercase font-bold tracking-widest block mb-2">Lien Vidéo ↗</a>` : ''}<details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-gray-500 cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Ingrédients (${Array.isArray(r.ingredients) ? r.ingredients.length : 0}) <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-2 pb-2 flex flex-wrap gap-1">${(Array.isArray(r.ingredients) ? r.ingredients : []).map(i => `<span class="bg-white border border-gray-200 px-2 py-1 rounded text-[9px] text-gray-500 font-bold">${i.name} ${i.qty ? `<span class="font-normal opacity-70">(${i.qty})</span>`:''}</span>`).join('')}</div></details><details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-[#8FA895] cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Préparation <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">${r.steps?r.steps.replace(/\n/g,'<br>'):'<i class="text-gray-400">Aucune étape.</i>'}</div></details><details class="group"><summary class="list-none text-[10px] font-bold text-[#C5A065] cursor-pointer flex justify-between uppercase tracking-widest bg-[#FFFDF5] p-2 rounded-lg border border-yellow-50">Mon Avis & Notes <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 space-y-3"><div class="flex gap-1 text-lg justify-center">${[1,2,3,4,5].map(star => `<i onclick="updateRec('${r.id}', 'rating', ${star})" class="fa-solid fa-star cursor-pointer ${star <= (r.rating||0) ? 'text-yellow-400' : 'text-gray-200'}"></i>`).join('')}</div><textarea onchange="updateRec('${r.id}', 'notes', this.value)" placeholder="Mes remarques..." class="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl text-xs outline-none h-20 text-gray-600">${r.notes || ''}</textarea></div></details></div></div>`
                 }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
-                // RENDU COURSES
                 document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
                 document.getElementById('ing-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
 
@@ -412,10 +469,11 @@
 
                 document.getElementById('restore-hidden-btn').className = (state.hiddenShop.length > 0) ? "mt-6 text-center" : "hidden mt-6 text-center";
                 document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
-                document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
+                document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save(); renderAll();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
                 
+                lucide.createIcons();
             } catch(e) {
-                console.error("Crash évité grâce au bouclier :", e);
+                console.error("Erreur gérée pour éviter l'écran blanc :", e);
             }
         }
     </script>
