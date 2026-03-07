@@ -167,22 +167,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         
-        // TES VRAIES RECETTES SONT ICI !
+        // LE VRAI DOSSIER FIREBASE
         const coll = "miam_cocon";
         const userId = "cuisine_cocon_user";
 
-        let state = { 
-            recipes: [], 
-            planning: {}, 
-            stores: ["Lidl", "Carrefour", "Action"], 
-            stock: [], 
-            purchased: [], 
-            hiddenShop: [], 
-            cookedSlots: [], 
-            customShop: [], 
-            prices: {} 
-        };
-        
+        let state = { recipes: [], planning: {}, stores: ["Lidl", "Carrefour"], stock: [], purchased: [], hiddenShop: [], cookedSlots: [], customShop: [], prices: {} };
         let tempIngredients = [];
         let tmpImg = '';
         let weekOffset = 0; 
@@ -266,38 +255,36 @@
             if (!state.planning[w]) state.planning[w] = {};
             if (!Array.isArray(state.planning[w][day])) state.planning[w][day] = [];
             state.planning[w][day].push(0);
-            renderAll(); 
             save();
         };
 
         window.removePlanSlot = (week, day, index) => { 
             state.planning["w"+week][day].splice(index, 1); 
-            renderAll(); 
             save(); 
         };
         
-        // LA CORRECTION EST ICI : on rafraîchit l'affichage AVANT de sauvegarder, avec == pour tout capter
+        // CORRECTION DE L'AFFICHAGE DU NOM LORS DE LA SELECTION
         window.updatePlan = (week, day, idx, val) => { 
-            state.planning[week][day][idx] = val; 
-            renderAll(); 
-            save(); 
+            state.planning[week][day][idx] = String(val); // Force en chaîne de caractères pour la comparaison
+            renderAll(); // On rafraichit l'écran immédiatement pour voir le nom
+            save(); // On sauvegarde en arrière plan
         };
         
         window.toggleCooked = (week, day, index) => {
             const id = `${week}-${day}-${index}`;
             state.cookedSlots = state.cookedSlots.includes(id) ? state.cookedSlots.filter(x => x !== id) : [...state.cookedSlots, id];
-            renderAll();
+            renderAll(); // On rafraichit l'écran immédiatement pour voir le vert
             save();
         };
 
-        window.addStore = () => { const s = document.getElementById('new-store').value.trim(); if(s) { state.stores.push(s); document.getElementById('new-store').value=''; renderAll(); save(); } };
+        window.addStore = () => { const s = document.getElementById('new-store').value.trim(); if(s) { state.stores.push(s); document.getElementById('new-store').value=''; save(); } };
         
         window.addManualItem = () => {
             const name = document.getElementById('manual-item').value.trim();
             const store = document.getElementById('manual-store').value;
-            if(name) { state.customShop.push({ id: Date.now(), name, store }); document.getElementById('manual-item').value = ''; renderAll(); save(); }
+            if(name) { state.customShop.push({ id: Date.now(), name, store }); document.getElementById('manual-item').value = ''; save(); }
         };
-        window.removeManualItem = (id) => { state.customShop = state.customShop.filter(x => x.id != id); renderAll(); save(); };
+        window.removeManualItem = (id) => { state.customShop = state.customShop.filter(x => String(x.id) !== String(id)); save(); };
 
         window.addIngToList = () => {
             const name = document.getElementById('ing-name').value.trim();
@@ -335,7 +322,7 @@
         }
 
         window.editRecipe = (id) => {
-            const r = state.recipes.find(x => x && x.id == id);
+            const r = state.recipes.find(x => x && String(x.id) === String(id));
             if(!r) return;
             document.getElementById('r-name').value = r.name || ''; 
             document.getElementById('r-cat').value = r.cat || 'Salé';
@@ -385,23 +372,23 @@
             if(name) {
                 const newData = { name, cat: document.getElementById('r-cat').value, link: document.getElementById('r-link').value, ingredients: tempIngredients, img: tmpImg, prepTime: document.getElementById('r-prep-time').value, airfryer: document.getElementById('r-airfryer').value, steps: document.getElementById('r-steps').value };
                 if (editingRecipeId) {
-                    const idx = state.recipes.findIndex(x => x && x.id == editingRecipeId);
+                    const idx = state.recipes.findIndex(x => x && String(x.id) === String(editingRecipeId));
                     if (idx !== -1) state.recipes[idx] = { ...state.recipes[idx], ...newData };
                 } else { 
-                    state.recipes.push({ id: Date.now(), ...newData, fav: false, rating: 0, notes: "" }); 
+                    state.recipes.push({ id: String(Date.now()), ...newData, fav: false, rating: 0, notes: "" }); 
                 }
-                resetRecipeForm(); document.getElementById('recipe-form-details').open = false; renderAll(); save();
+                resetRecipeForm(); document.getElementById('recipe-form-details').open = false; save();
             } else { alert("Il manque le nom de la recette !"); }
         };
 
-        window.addToStock = () => { const s = document.getElementById('stock-input').value.trim().toLowerCase(); if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; renderAll(); save(); } };
-        window.toggleFav = (id) => { const r = state.recipes.find(x => x && x.id == id); if(r) { r.fav = !r.fav; renderAll(); save(); } };
-        window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x && x.id == id); if(r) { r[field] = val; save(); } };
-        window.updatePrice = (name, val) => { state.prices[name.toLowerCase()] = parseFloat(val) || 0; renderAll(); save(); };
+        window.addToStock = () => { const s = document.getElementById('stock-input').value.trim().toLowerCase(); if(s) { state.stock.push(s); document.getElementById('stock-input').value=''; save(); } };
+        window.toggleFav = (id) => { const r = state.recipes.find(x => x && String(x.id) === String(id)); if(r) { r.fav = !r.fav; save(); } };
+        window.updateRec = (id, field, val) => { const r = state.recipes.find(x => x && String(x.id) === String(id)); if(r) { r[field] = val; save(); } };
+        window.updatePrice = (name, val) => { state.prices[name.toLowerCase()] = parseFloat(val) || 0; save(); };
         window.filterRecipes = (f) => { currentFilter = f; document.querySelectorAll('.filter-chip').forEach(btn => { btn.classList.remove('bg-[#8FA895]', 'text-white'); btn.classList.add('bg-white', 'text-gray-400'); if(btn.id === 'f-' + f) { btn.classList.remove('bg-white', 'text-gray-400'); btn.classList.add('bg-[#8FA895]', 'text-white'); } }); renderAll(); };
-        window.togglePurchased = (n) => { state.purchased = state.purchased.includes(n) ? state.purchased.filter(x => x !== n) : [...state.purchased, n]; renderAll(); save(); };
-        window.hideFromShop = (ingName) => { const low = ingName.toLowerCase(); state.hiddenShop = state.hiddenShop.includes(low) ? state.hiddenShop : [...state.hiddenShop, low]; renderAll(); save(); };
-        window.restoreHiddenShop = () => { state.hiddenShop = []; renderAll(); save(); };
+        window.togglePurchased = (n) => { state.purchased = state.purchased.includes(n) ? state.purchased.filter(x => x !== n) : [...state.purchased, n]; save(); };
+        window.hideFromShop = (ingName) => { const low = ingName.toLowerCase(); state.hiddenShop = state.hiddenShop.includes(low) ? state.hiddenShop : [...state.hiddenShop, low]; save(); };
+        window.restoreHiddenShop = () => { state.hiddenShop = []; save(); };
 
         function renderAll() {
             try {
@@ -418,7 +405,7 @@
                 Object.values(state.planning[weekKey] || {}).forEach(dayPlan => {
                     let pArray = Array.isArray(dayPlan) ? dayPlan : [dayPlan];
                     pArray.forEach(rid => {
-                        const r = state.recipes.find(x => x && x.id == rid);
+                        const r = state.recipes.find(x => x && String(x.id) === String(rid));
                         if(r && Array.isArray(r.ingredients)) {
                             r.ingredients.forEach(i => {
                                 const low = i.name ? String(i.name).toLowerCase() : "";
@@ -439,7 +426,6 @@
                 Object.values(shopping).forEach(items => items.forEach(item => { budget += (state.prices[(item.name ? String(item.name).toLowerCase() : "")] || 0); }));
                 document.getElementById('total-budget').innerText = budget.toFixed(2);
 
-                // AFFICHAGE DU PLANNING (Mise à jour pour reconnaitre le plat)
                 document.getElementById('planner-container').innerHTML = days.map(d => {
                     let dayPlan = (state.planning[weekKey] || {})[d];
                     if(typeof dayPlan === 'number' || typeof dayPlan === 'string') dayPlan = [dayPlan];
@@ -447,16 +433,16 @@
                     
                     return `<div class="card py-3"><div class="flex justify-between items-center mb-2 border-b border-gray-50 pb-2"><span class="text-[11px] font-bold text-[#8FA895] uppercase tracking-widest">${d}</span><button onclick="addPlanSlot(${weekOffset}, '${d}')" class="text-[9px] bg-[#8FA895] text-white px-2 py-1 rounded shadow-sm font-bold uppercase tracking-wider">+ Plat</button></div><div class="flex flex-col">${dayPlan.map((pid, index) => {
                         
-                        // L'UTILISATION DE == FAIT FONCTIONNER L'AFFICHAGE DU NOM PARFAITEMENT !
-                        const r = state.recipes.find(x => x && x.id == pid); 
+                        // CORRECTION : String() permet d'être sûr de trouver le plat même s'il est enregistré comme un nombre ou du texte
+                        const r = state.recipes.find(x => x && String(x.id) === String(pid)); 
                         const isCooked = state.cookedSlots.includes(`${weekKey}-${d}-${index}`);
                         
-                        return `<div class="flex justify-between items-center p-2 rounded-lg mb-1 transition-colors ${isCooked ? 'bg-[#8FA895]/10 border border-[#8FA895]/30' : 'bg-gray-50/50'}"><button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-3 text-[16px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors"><i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i></button><span class="text-[11px] ${isCooked ? 'text-emerald-700 font-black' : 'text-gray-700 font-bold'} truncate flex-1 mr-2">${r ? r.name : 'Choisir un plat...'}</span><select onchange="updatePlan('${weekKey}', '${d}', ${index}, this.value)" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none"><option value="0">---</option>${state.recipes.map(rec => `<option value="${rec.id}" ${rec.id == pid ? 'selected' : ''}>${rec.name}</option>`).join('')}</select>${dayPlan.length > 1 ? `<button onclick="removePlanSlot('${weekKey}', '${d}', ${index})" class="text-red-300 text-[12px] ml-2 px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
+                        return `<div class="flex justify-between items-center p-2 rounded-lg mb-1 transition-colors ${isCooked ? 'bg-[#8FA895]/10 border border-[#8FA895]/30' : 'bg-gray-50/50'}"><button onclick="toggleCooked('${weekKey}', '${d}', ${index})" class="mr-3 text-[16px] ${isCooked ? 'text-emerald-500' : 'text-gray-300'} transition-colors"><i class="fa-solid ${isCooked ? 'fa-circle-check' : 'fa-circle-notch'}"></i></button><span class="text-[11px] ${isCooked ? 'text-emerald-700 font-black' : 'text-gray-700 font-bold'} truncate flex-1 mr-2">${r ? r.name : 'Choisir un plat...'}</span><select onchange="updatePlan('${weekKey}', '${d}', ${index}, this.value)" class="bg-white border border-gray-200 p-1.5 rounded-md text-[10px] font-bold text-gray-500 w-28 outline-none"><option value="0">---</option>${state.recipes.map(rec => `<option value="${rec.id}" ${String(pid) === String(rec.id) ? 'selected' : ''}>${rec.name}</option>`).join('')}</select>${dayPlan.length > 1 ? `<button onclick="removePlanSlot('${weekKey}', '${d}', ${index})" class="text-red-300 text-[12px] ml-2 px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}</div>`;
                     }).join('')}</div></div>`;
                 }).join('');
 
                 document.getElementById('recipes-list').innerHTML = state.recipes.filter(r => currentFilter === 'all' || (currentFilter === 'fav' ? r.fav : r.cat === currentFilter)).map(r => {
-                    return `<div class="card p-0 overflow-hidden relative"><span class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold shadow-sm uppercase z-10 text-gray-600">${r.cat || 'Salé'}</span><button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}"><i class="fa-solid fa-heart"></i></button>${r.img ? `<div class="h-32 bg-cover bg-center" style="background-image:url(${r.img})"></div>` : ''}<div class="p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-[#3A4D3F]">${r.name}</h3><div class="flex gap-2"><button onclick="editRecipe(${r.id})" class="text-[#8FA895]"><i class="fa-solid fa-pen"></i></button><button onclick="if(confirm('Supprimer définitivement ?')) {state.recipes=state.recipes.filter(x=>x.id != '${r.id}'); save(); renderAll();}" class="text-gray-300"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="flex gap-2 mb-3">${r.prepTime?`<span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-regular fa-clock mr-1"></i>${r.prepTime}</span>`:''}${r.airfryer?`<span class="bg-[#FFFDF5] border border-[#C5A065] text-[#C5A065] px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-solid fa-fan mr-1"></i>${r.airfryer}</span>`:''}</div>${r.link ? `<a href="${r.link}" target="_blank" class="text-[9px] text-[#C5A065] underline uppercase font-bold tracking-widest block mb-2">Lien Vidéo ↗</a>` : ''}<details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-gray-500 cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Ingrédients (${Array.isArray(r.ingredients) ? r.ingredients.length : 0}) <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-2 pb-2 flex flex-wrap gap-1">${(Array.isArray(r.ingredients) ? r.ingredients : []).map(i => `<span class="bg-white border border-gray-200 px-2 py-1 rounded text-[9px] text-gray-500 font-bold">${i.name} ${i.qty ? `<span class="font-normal opacity-70">(${i.qty})</span>`:''}</span>`).join('')}</div></details><details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-[#8FA895] cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Préparation <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">${r.steps?r.steps.replace(/\n/g,'<br>'):'<i class="text-gray-400">Aucune étape.</i>'}</div></details><details class="group"><summary class="list-none text-[10px] font-bold text-[#C5A065] cursor-pointer flex justify-between uppercase tracking-widest bg-[#FFFDF5] p-2 rounded-lg border border-yellow-50">Mon Avis & Notes <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 space-y-3"><div class="flex gap-1 text-lg justify-center">${[1,2,3,4,5].map(star => `<i onclick="updateRec('${r.id}', 'rating', ${star})" class="fa-solid fa-star cursor-pointer ${star <= (r.rating||0) ? 'text-yellow-400' : 'text-gray-200'}"></i>`).join('')}</div><textarea onchange="updateRec('${r.id}', 'notes', this.value)" placeholder="Mes remarques..." class="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl text-xs outline-none h-20 text-gray-600">${r.notes || ''}</textarea></div></details></div></div>`
+                    return `<div class="card p-0 overflow-hidden relative"><span class="absolute top-2 left-2 bg-white/90 px-2 py-1 rounded-md text-[9px] font-bold shadow-sm uppercase z-10 text-gray-600">${r.cat || 'Salé'}</span><button onclick="toggleFav(${r.id})" class="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center bg-white/90 rounded-full shadow-sm text-lg ${r.fav ? 'text-rose-500' : 'text-gray-300'}"><i class="fa-solid fa-heart"></i></button>${r.img ? `<div class="h-32 bg-cover bg-center" style="background-image:url(${r.img})"></div>` : ''}<div class="p-4"><div class="flex justify-between items-center mb-2"><h3 class="font-bold text-[#3A4D3F]">${r.name}</h3><div class="flex gap-2"><button onclick="editRecipe(${r.id})" class="text-[#8FA895]"><i class="fa-solid fa-pen"></i></button><button onclick="if(confirm('Supprimer définitivement ?')) {state.recipes=state.recipes.filter(x=>String(x.id)!==String('${r.id}')); save();}" class="text-gray-300"><i class="fa-solid fa-trash-can"></i></button></div></div><div class="flex gap-2 mb-3">${r.prepTime?`<span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-regular fa-clock mr-1"></i>${r.prepTime}</span>`:''}${r.airfryer?`<span class="bg-[#FFFDF5] border border-[#C5A065] text-[#C5A065] px-2 py-1 rounded-md text-[9px] font-bold"><i class="fa-solid fa-fan mr-1"></i>${r.airfryer}</span>`:''}</div>${r.link ? `<a href="${r.link}" target="_blank" class="text-[9px] text-[#C5A065] underline uppercase font-bold tracking-widest block mb-2">Lien Vidéo ↗</a>` : ''}<details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-gray-500 cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Ingrédients (${Array.isArray(r.ingredients) ? r.ingredients.length : 0}) <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-2 pb-2 flex flex-wrap gap-1">${(Array.isArray(r.ingredients) ? r.ingredients : []).map(i => `<span class="bg-white border border-gray-200 px-2 py-1 rounded text-[9px] text-gray-500 font-bold">${i.name} ${i.qty ? `<span class="font-normal opacity-70">(${i.qty})</span>`:''}</span>`).join('')}</div></details><details class="mb-2 group"><summary class="list-none text-[10px] font-bold text-[#8FA895] cursor-pointer flex justify-between uppercase tracking-widest bg-gray-50 p-2 rounded-lg border border-gray-100">Préparation <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 pb-2 text-xs text-gray-600 leading-relaxed border-l-2 border-[#8FA895] pl-3 ml-1 mt-2">${r.steps?r.steps.replace(/\n/g,'<br>'):'<i class="text-gray-400">Aucune étape.</i>'}</div></details><details class="group"><summary class="list-none text-[10px] font-bold text-[#C5A065] cursor-pointer flex justify-between uppercase tracking-widest bg-[#FFFDF5] p-2 rounded-lg border border-yellow-50">Mon Avis & Notes <i class="fa-solid fa-chevron-down transition-transform group-open:rotate-180"></i></summary><div class="pt-3 space-y-3"><div class="flex gap-1 text-lg justify-center">${[1,2,3,4,5].map(star => `<i onclick="updateRec('${r.id}', 'rating', ${star})" class="fa-solid fa-star cursor-pointer ${star <= (r.rating||0) ? 'text-yellow-400' : 'text-gray-200'}"></i>`).join('')}</div><textarea onchange="updateRec('${r.id}', 'notes', this.value)" placeholder="Mes remarques..." class="w-full bg-gray-50 border border-gray-100 p-3 rounded-xl text-xs outline-none h-20 text-gray-600">${r.notes || ''}</textarea></div></details></div></div>`
                 }).join('') || '<p class="text-center text-gray-300 text-xs italic">Aucune recette trouvée ✨</p>';
 
                 document.getElementById('manual-store').innerHTML = state.stores.map(s => `<option value="${s}">${s}</option>`).join('');
@@ -469,7 +455,7 @@
 
                 document.getElementById('restore-hidden-btn').className = (state.hiddenShop.length > 0) ? "mt-6 text-center" : "hidden mt-6 text-center";
                 document.getElementById('stores-tags').innerHTML = state.stores.map(s => `<span class="bg-[#3A4D3F]/10 text-[#3A4D3F] px-3 py-1 rounded-full text-[10px] font-bold uppercase">${s}</span>`).join('');
-                document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save(); renderAll();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
+                document.getElementById('stock-list').innerHTML = state.stock.map(s => `<button onclick="state.stock=state.stock.filter(x=>x!=='${s}'); save();" class="px-3 py-1 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase">${s} ✕</button>`).join('');
                 
                 lucide.createIcons();
             } catch(e) {
